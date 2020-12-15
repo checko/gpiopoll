@@ -37,6 +37,12 @@ int main(int argc, char *argv[])
       sudo sh -c "echo rising >/sys/class/gpio/gpio4/edge"
    */
 
+   if(argc>=(sizeof(pfd)/sizeof(pfd[0])-1)){
+	   fprintf(stderr, "too many gpios..\n");
+	   exit(1);
+   }
+
+
    for(i=1;i<argc;i++)
 	   setpfd(pfd+i-1  ,atoi(argv[i]));
 
