@@ -7,11 +7,30 @@
 
 #define GPIO 4
 
+void setpfd(struct pollfd *pfd, int gpio)
+{
+   char str[256];
+   int fd;
+   char buf[8];
+
+   sprintf(str, "/sys/class/gpio/gpio%d/value", gpio);
+   if ((fd = open(str, O_RDONLY)) < 0)
+   {
+      fprintf(stderr, "Failed, gpio %d not exported.\n", gpio);
+      exit(1);
+   }
+   pfd->fd = fd;
+   pfd->events = POLLPRI;
+   lseek(pfd->fd, 0, SEEK_SET);    /* consume any prior interrupt */
+   read(pfd->fd, buf, sizeof buf);
+
+}
+
 int main(int argc, char *argv[])
 {
    char str[256];
    struct timeval tv;
-   struct pollfd pfd;
+   struct pollfd pfd[2];
    int fd, gpio;
    char buf[8];
 
@@ -25,25 +44,12 @@ int main(int argc, char *argv[])
    if (argc > 1) gpio = atoi(argv[1]);
    else          gpio = GPIO;
 
-   sprintf(str, "/sys/class/gpio/gpio%d/value", gpio);
+   setpfd(pfd,gpio);
 
-   if ((fd = open(str, O_RDONLY)) < 0)
-   {
-      fprintf(stderr, "Failed, gpio %d not exported.\n", gpio);
-      exit(1);
-   }
+   poll(pfd, 1, -1);         /* wait for interrupt */
 
-   pfd.fd = fd;
-
-   pfd.events = POLLPRI;
-
-   lseek(fd, 0, SEEK_SET);    /* consume any prior interrupt */
-   read(fd, buf, sizeof buf);
-
-   poll(&pfd, 1, -1);         /* wait for interrupt */
-
-   lseek(fd, 0, SEEK_SET);    /* consume interrupt */
-   read(fd, buf, sizeof buf);
+   //lseek(fd, 0, SEEK_SET);    /* consume interrupt */
+   //read(fd, buf, sizeof buf);
 
    exit(0);
 }
