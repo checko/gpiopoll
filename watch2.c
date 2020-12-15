@@ -30,9 +30,10 @@ int main(int argc, char *argv[])
 {
    char str[256];
    struct timeval tv;
-   struct pollfd pfd[2];
+   struct pollfd pfd[10];
    int fd, gpio;
    char buf[8];
+   int i;
 
    /*
       Prior calls assumed.
@@ -44,9 +45,13 @@ int main(int argc, char *argv[])
    if (argc > 1) gpio = atoi(argv[1]);
    else          gpio = GPIO;
 
-   setpfd(pfd,gpio);
+   for(i=1;i<argc;i++)
+   {
+	   gpio = atoi(argv[i]);
+	   setpfd(pfd+i-1  ,gpio);
+   }
 
-   poll(pfd, 1, -1);         /* wait for interrupt */
+   poll(pfd, argc-1, -1);         /* wait for interrupt */
 
    //lseek(fd, 0, SEEK_SET);    /* consume interrupt */
    //read(fd, buf, sizeof buf);
