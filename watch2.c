@@ -5,7 +5,6 @@
 #include <sys/time.h>
 #include <poll.h>
 
-#define GPIO 4
 
 void setpfd(struct pollfd *pfd, int gpio)
 {
@@ -28,11 +27,7 @@ void setpfd(struct pollfd *pfd, int gpio)
 
 int main(int argc, char *argv[])
 {
-   char str[256];
-   struct timeval tv;
    struct pollfd pfd[10];
-   int fd, gpio;
-   char buf[8];
    int i;
 
    /*
@@ -42,14 +37,8 @@ int main(int argc, char *argv[])
       sudo sh -c "echo rising >/sys/class/gpio/gpio4/edge"
    */
 
-   if (argc > 1) gpio = atoi(argv[1]);
-   else          gpio = GPIO;
-
    for(i=1;i<argc;i++)
-   {
-	   gpio = atoi(argv[i]);
-	   setpfd(pfd+i-1  ,gpio);
-   }
+	   setpfd(pfd+i-1  ,atoi(argv[i]));
 
    poll(pfd, argc-1, -1);         /* wait for interrupt */
 
